@@ -1,0 +1,49 @@
+---
+title: "Deploy shiny app in CP4D"
+format: html
+---
+
+## Set up the environment
+
+### Environment variables
+
+```{r}
+reticulate::use_python("venv/bin/python3.10", required = TRUE)
+
+readRenviron(".Renviron")
+username <- Sys.getenv("WML_USERNAME")
+api_key <- Sys.getenv("WML_API_KEY")
+url <- Sys.getenv("WML_URL")
+# resource_crn <- Sys.getenv("RESOURCE_CRN")
+
+wml_credentials <- reticulate::dict(list(username = username, apikey = api_key, url = url, instance_id = "openshift", version = "4.5"))
+```
+
+###  Connect with WML
+
+```{r}
+wml <- reticulate::import("ibm_watson_machine_learning")
+client <- wml$APIClient(wml_credentials)
+```
+
+### Create spaces
+
+```{r}
+space_metadata <- reticulate::dict(list(name='shiny-space', storage=reticulate::dict(resource_crn=resource_crn)))
+client$spaces$store(space_metadata)
+```
+
+### List spaces
+
+```{r}
+client$spaces$list()
+```
+
+## Application upload
+
+### Upload application as data asset
+
+```{r}
+shiny_details <- client$shiny$store(meta_props=reticulate::dict(list()))
+```
+
